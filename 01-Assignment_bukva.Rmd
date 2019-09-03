@@ -1,0 +1,163 @@
+---
+title: "01-assignment_bukva"
+output: html_document
+---
+
+#Assignment 01
+
+Today I will do several tasks using RStudio:
+
+1. Write a sentence to say: Hello, World
+2. Produce R outuputs that summarizes the variables in college.Rdata Dataset
+      A. Calculatetheaverageearningsforindividualsatthemostselectivecolleges, then compare that with individuals at the least selective colleges in the dataset.
+      B. Find a way to determine whether colleges with very high SAT scores tend to be larger or smaller than colleges with low SAT scores.
+      C. Plot the relationship between cost and debt. What do you see? Does this surprise you?
+      D. Now, provide separate plots for cost and debt by control of the institution.
+
+##Part 1 - HELLO WORLD!
+
+```{r}
+##This line prints hello world
+print("Hello, World")
+```
+
+##Part 2 - R outputs
+
+```{r}
+## Get necessary libraries-- We need to install some packages in order to run and analyze the data.
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(plotly)
+library(Metrics)
+```
+```{r}
+## Load in the data for this assignment 
+load("college.Rdata")
+```
+
+###Part 2A Average earnings from most selective colleges vs least selective colleges.
+
+```{r}
+## What's the average earings for individuals?
+sc%>%summarize(mean_earnings=mean(md_earn_wne_p6,na.rm=TRUE))
+```
+
+```{r}
+## What's the average earning for individuals from very selective schools (those with less than 10 percent acceptance rate)? This only looks at those who are not in college six years after graduation. 
+sc%>%filter(adm_rate<.1)%>%summarize(mean_earnings=mean(md_earn_wne_p6,na.rm=TRUE))
+
+## What is the average earnings for individuals from not very selective schools (those with greater than a 30 percent acceptance rate)?
+sc%>%filter(adm_rate>.3)%>%summarize(mean_earnings=mean(md_earn_wne_p6,na.rm=TRUE))
+```
+
+###Part 2B Are colleges with very high SAT scores larger or smaller than colleges with low SAT scores
+
+```{r}
+## High SAT scores (over 1350) by colleges ranked by size of school in descending order.
+sc%>%filter(sat_avg>1350)%>%select(instnm,sat_avg,ugds)%>%
+  arrange(-ugds)
+```
+From looking at this data, it appears that the if SAT average scores are higher, the number of undergraduates tends to be lower than other schools with lower SAT average scores.
+
+```{r}
+##We could also look at SAT rank and then sort on our view by number of undergraduates and we will come to the same conclusion as above.
+sc<-sc%>%mutate(sat_avg=rank(ugds))
+```
+
+
+###Part 2C Plotting the relationship between cost and debt.
+
+```{r}
+## Plot cost and debt of colleges
+gg<-ggplot(data=sc, aes(x=costt4_a,
+                         y=debt_mdn,
+                         text=instnm))
+```
+
+
+Now I need to declare the type of graphic, or geometry. By specifiying `geom_point` I'm saying I want a scatterplot.
+```{r}
+## Add Points
+gg<-gg+geom_point(alpha=.5,size=.5)
+```
+
+Now I'm going to add labels for the x and y axis. 
+```{r}
+## Add labels
+gg<-gg+xlab("Average cost of attendnace")+ylab("Median debt of graduates")
+```
+
+
+And now we're ready to call the graphics object, `gg`
+```{r}
+gg
+```
+
+```{r}
+# Make Interactive plot
+gg_p<-ggplotly(gg)
+
+gg_p
+```
+
+There is a range of debt when looking at the cost by school.  One thing that we can see is that many of the schools with the highest costs, also have the highest debts.  However, there are some that do not have the as high of debt adn this could be attributed to the higher earnign potential of those colleges.  
+
+###Part 2D - Cost and debt by control of institution.  
+
+```{r}
+## Plot cost and control of institution
+gg1<-ggplot(data=sc, aes(x=costt4_a,
+                         y=control,
+                         text=instnm))
+```
+
+```{r}
+## Add Points
+gg1<-gg1+geom_point(alpha=.5,size=.5)
+```
+
+```{r}
+## Add labels
+gg1<-gg1+xlab("Average cost of attendance")+ylab("Control of institution")
+```
+
+```{r}
+gg1
+```
+
+```{r}
+# Make Interactive plot
+gg_p1<-ggplotly(gg1)
+
+gg_p1
+```
+
+
+
+```{r}
+## Plot debt and control of institution
+gg_2<-ggplot(data=sc, aes(x=debt_mdn,
+                         y=control,
+                         text=instnm))
+```
+
+```{r}
+## Add Points
+gg_2<-gg_2+geom_point(alpha=.5,size=.5)
+```
+
+```{r}
+## Add labels
+gg_2<-gg_2+xlab("Median debt of graduates")+ylab("Control of institutions")
+```
+
+```{r}
+gg_2
+```
+
+```{r}
+# Make Interactive plot
+gg_p2<-ggplotly(gg_2)
+
+gg_p2
+```
